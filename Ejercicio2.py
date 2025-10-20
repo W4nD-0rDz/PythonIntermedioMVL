@@ -30,7 +30,7 @@ class Auto:
     def __str__(self):
         return f"Vehículo {self.marca}, {self.modelo} - ${self.costo_ars} - US${self.costo_usd}"    
 
-#Declaración de las variables importantes
+#Declaración de las variables
 lista_autos = []
 if os.path.exists("autos.csv"):
     df_autos = pd.read_csv("autos.csv")
@@ -54,7 +54,7 @@ def cotizar_autos():
     modelo = input("Ingrese el modelo del auto a cotizar: ")
     for auto in lista_autos:
         if auto.modelo == modelo:
-            print(f"El costo del auto {auto.marca} {auto.modelo} es US${auto.costo_usd}")
+            print(f"El costo del auto {auto.marca}, {auto.modelo} es US${auto.costo_usd}")
             break
     else:
         print("Auto no encontrado.")
@@ -69,7 +69,7 @@ def salir():
                 "costo_usd": auto.costo_usd
                 } for auto in lista_autos])
             if not df_autos_nuevos.empty:
-                df_autos = pd.concat([df_autos, df_autos_nuevos], ignore_index=True)
+                df_autos = pd.concat([df_autos, df_autos_nuevos], ignore_index=True) #Se concatenan los preexistentes y los nuevos
                 df_autos.to_csv("autos.csv", index=False) #se guarda en el csv al salir del aplicativo
     print("Gracias por su visita. Hasta pronto.")
     print("Automotores La Rueda")
