@@ -14,7 +14,7 @@ class Animal():
     def hablar(self):
         return f"Shhhh..."
 
-    def mostrar(self):
+    def __str__(self):
         return f"Mi mascota se llama {self.nombre} y tiene {self.edad} años"
 
 #Instancias de la superclase

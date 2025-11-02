@@ -17,30 +17,33 @@ import os
 
 #Definición de la clase
 class Auto:
+    exchange_rate = 185.0
     ##Constructor
     def __init__(self, marca, modelo, costo_ars):
         self.marca = marca
         self.modelo = modelo
-        self.costo_ars = costo_ars
+        self.costo_ars = float(costo_ars)
         self.costo_usd = self.cotizar_en_dolares()
     ##Método auxiliar
-    def cotizar_en_dolares(self):
-        return self.costo_ars / 185
+    def cotizar_en_dolares(self, rate=None):
+        rate = rate or self.exchange_rate
+        return round(self.costo_ars / rate, 2)
     ##Método que transforma en texto "mostrable"
     def __str__(self):
         return f"Vehículo {self.marca}, {self.modelo} - ${self.costo_ars} - US${self.costo_usd}"    
 
 #Declaración de las variables
 lista_autos = []
-if os.path.exists("autos.csv"):
-    df_autos = pd.read_csv("autos.csv")
+csv_path = "autos.csv"
+if os.path.exists(csv_path):
+    df_autos = pd.read_csv(csv_path)
 else:
     df_autos = pd.DataFrame(columns=["marca", "modelo", "costo_ars", "costo_usd"])
 
 #Funciones del aplicativo
 def agregar_auto():
-    marca = input("Ingrese la marca del auto: ")
-    modelo = input("Ingrese el modelo del auto: ")
+    marca = input("Ingrese la marca del auto: ").strip()
+    modelo = input("Ingrese el modelo del auto: ").strip()
     costo_ars = float(input("Ingrese el costo del auto en ARS (pesos argentinos) $AR$: "))
     auto = Auto(marca, modelo, costo_ars)
     lista_autos.append(auto)
@@ -59,7 +62,7 @@ def cotizar_autos():
     else:
         print("Auto no encontrado.")
 
-def salir():
+def guardar_autos_en_csv():
     global df_autos #porque se crea fuera de la función salir()
     if lista_autos: #Si hay algo en la lista
             df_autos_nuevos = pd.DataFrame([{ #se crea el dataframe directamente a partir de la lista
@@ -71,6 +74,9 @@ def salir():
             if not df_autos_nuevos.empty:
                 df_autos = pd.concat([df_autos, df_autos_nuevos], ignore_index=True) #Se concatenan los preexistentes y los nuevos
                 df_autos.to_csv("autos.csv", index=False) #se guarda en el csv al salir del aplicativo
+
+def salir():
+    guardar_autos_en_csv()    
     print("Gracias por su visita. Hasta pronto.")
     print("Automotores La Rueda")
 
