@@ -28,12 +28,15 @@ class Menu():
                 continue #vuelve a mostrar el menu
 
             clave = int(entrada)
-            if clave == self.salida:
-                print("Saliendo del menú...")
-                break
-            elif clave in self.opciones:
-                funcion = self.opciones[clave][1]
-                if callable(funcion):
-                    funcion()
+            if clave in self.opciones or clave == self.salida:
+                return clave
             else:
                 print("❌ Opción no encontrada. Intente nuevamente.")
+
+    
+    def ejecutar_opcion(self):
+        """Muestra el menú y ejecuta la función asociada si existe"""
+        clave = self.mostrar()
+        funcion = self.opciones.get(clave, (None, None))[1]
+        if callable(funcion):
+            funcion()

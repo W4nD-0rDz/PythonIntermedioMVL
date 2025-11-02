@@ -202,7 +202,7 @@ class MotoDeAgua(VehiculoTerrestre, VehiculoAcuatico):
         print(f"Modo actual: {self.modo_actual}")
         print(f"Capacidad de pasajeros: {self.cant_pasajeros}")
 
-######################################
+##########################################
 #Experimento 1:
 """h = Hidroavion("H123", "Cessna", "SeaPlane", 2022, 10, "motor a combustión", 2, "biplaza", "acuático", 4)
 h.mostrar()
@@ -213,14 +213,14 @@ for cls in Hidroavion.mro():
 
 ##########################################
 
-# ========================
+# ===========================
 # BLOQUE PRINCIPAL DE PRUEBAS
-# ========================
+# ===========================
 
-#1- importa el menú reutilizable
+#1- Importar el menú reutilizable
 from menu_utils import Menu  
 
-#2- Muestra el submenú interactivo del vehículo recibido hasta que se elija salir
+#2- Mostrar el submenú interactivo del vehículo recibido hasta que se elija salir
 def abrir_submenu(vehiculo):
     menu = Menu(titulo=f"Submenú {vehiculo.marca} {vehiculo.modelo}", opciones=vehiculo.submenu, salida=0)
     menu.mostrar()
@@ -232,7 +232,7 @@ helicoptero = Helicóptero("H500", "Bell", "206", 2015, 1, "ligero", True)
 hidroavion = Hidroavion("H123", "Cessna", "SeaPlane", 2022, 10, "motor a combustión", 2, "biplaza", "acuático", 4)
 motoagua = MotoDeAgua("M456", "Yamaha", "WaveRunner", 2023, 1, 0, 3, "jet", "acuático", 2)
 
-#4- Diccionario de objetos disponibles
+#4- Armar el diccionario de objetos disponibles
 vehiculos_menu = {
     1: ("Automóvil", lambda: abrir_submenu(auto)),
     2: ("Barco", lambda: abrir_submenu(barco)),
@@ -242,6 +242,22 @@ vehiculos_menu = {
     0: ("Salir", None)
 }
 
-#5- Muestra el menú principal de vehículos y permite seleccionar submenús o salir
+#5- Mostrar el menú principal de vehículos que permite seleccionar submenús o salir
 menu_principal = Menu(titulo="Menú principal de LogiTrans", opciones=vehiculos_menu, salida=0)
 menu_principal.mostrar()
+
+
+
+
+
+
+
+
+# def ver_articulos(): del ejercicio 3
+#     if not os.path.exists(csv_path):
+#         print("No hay artículos registrados aún.")
+#         return
+#     with open(csv_path, newline="", encoding="utf-8") as f:
+#         reader = csv.DictReader(f)
+#         for row in reader:
+#             print(f"{row['codigo']} | {row['nombre']} | ${row['precio']} | Stock: {row['stock']} | Otros:{row['otros']}")
