@@ -12,7 +12,6 @@ Máquinas.
 código, 
 nombre 
 precio
-
 se podrá acceder a esta información mediante un método.
 
 4. Los artículos tendrán un número de stock y un método que nos indique "Debe Comprar" si el mismo menor  a 100.
@@ -42,8 +41,9 @@ class Articulo:
             }
 
     def controlar_stock(self):
+        diferencia = 100 - self.stock
         if self.stock < 100:
-            print("Debe comprar")
+            print(f"Debe comprar {diferencia} unidades de {self.nombre}")
         else:
             print("No debe comprar")
 
@@ -54,6 +54,10 @@ class Articulo:
         return [self.codigo, self.nombre, self.precio, self.stock, ""]
 
 #CLASES
+class ArticuloFerreteria(Articulo):
+    def __init__(self, codigo, nombre, precio, stock):
+        super().__init__(codigo, nombre, precio, stock)
+
 class ArticuloElectrico(Articulo):
     def __init__(self, codigo, nombre, precio, stock, tension):
         super().__init__(codigo, nombre, precio, stock)
@@ -63,10 +67,10 @@ class ArticuloElectrico(Articulo):
         })
 
     def determinar_tension(self):
-        if int(self.tension) < 48:
-            print("Es de baja tensión")
+        if int(self.tension) < 50:
+            print("Es de muy baja tensión")
         else:
-            print("No es de baja tensión")
+            print("Es de baja tensión")
     
     def convertir_a_lista(self):
         return [self.codigo, self.nombre, self.precio, self.stock, self.tension]
@@ -102,6 +106,25 @@ class ArticuloMaquina(Articulo):
     def convertir_a_lista(self):
         return [self.codigo, self.nombre, self.precio, self.stock, self.potencia]
 
+#CLASE CON HERENCIA MULTIPLE
+class ArticuloMaquinaElectrica(ArticuloMaquina, ArticuloElectrico):
+    def __init__(self, codigo, nombre, precio, stock, potencia, tension):
+        ArticuloMaquina.__init__(self, codigo, nombre, precio, stock, potencia)
+        ArticuloElectrico.__init__(self, codigo, nombre, precio, stock, tension)
+        self.intensidad = potencia/tension
+        self.submenu.update({
+            3: ("Identificar Tensión", self.determinar_tension)
+        })
+    
+    def determinar_tension(self):
+        pass
+
+    def calcular_consumo(self):
+        pass
+    
+    def convertir_a_lista(self):
+        return [self.codigo, self.nombre, self.precio, self.stock, f"{self.intensidad:.2f}A"]
+
 #########################################
 #Librerías
 import os
@@ -115,7 +138,7 @@ csv_path = "ferreteria.csv"
 #Si hay articulos cargados en archivo csv, genera contadores 
 # para garantizar que los códigos no se repitan y que los articulos se archiven correctamente
 def obtener_contadores(csv_path):
-    contadores = {"1": 0, "2": 0, "3": 0}
+    contadores = {"1": 0, "2": 0, "3": 0, "4":0, "5":0}
     if os.path.exists(csv_path):
         with open(csv_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -160,6 +183,12 @@ def cargar_articulo(tipo, contadores):
         elif tipo == "3":
             potencia = int(input("Indique la potencia del equipo (W): "))
             articulo = ArticuloMaquina(codigo, nombre, precio, stock, potencia)
+        elif tipo =="4":
+            articulo = ArticuloFerreteria(codigo, nombre, precio, stock)
+        elif tipo == "5":
+            tension = input("Indique la tensión que admite el artículo eléctrico (v): ")
+            potencia = int(input("Indique la potencia del equipo (W): "))
+            articulo = ArticuloMaquinaElectrica(codigo, nombre, precio, stock, potencia, tension)
     else:
         print("tipo de artículo inexistente.")
         return
@@ -180,7 +209,8 @@ def cargar_y_guardar():
     sub_menu = Menu(titulo="Seleccione el tipo de artículo", opciones={
         1: ("Artículo Electrico", None),
         2: ("Articulo Herramienta", None),
-        3: ("Articulo Maquina", None)
+        3: ("Articulo Maquina", None),
+        4: ("Articulo Ferreteria", None),
     }, salida=0)
     tipo = sub_menu.mostrar()
     if tipo == 0:
@@ -197,6 +227,8 @@ def cargar_y_guardar():
             art.mostrar_rubro()
         elif isinstance(art, ArticuloMaquina):
             art.calcular_consumo()
+        elif isinstance(art, ArticuloFerreteria):
+                art.mostrar_info()
 
         guardar_articulo(art)
 
@@ -211,6 +243,7 @@ def ver_articulos():
 #5 Salida
 def salir():
     print("🛠️ Ferretería 🛠️ La Tuerca 🛠️ agradece su visita.")
+    exit()
 
 #5- Menu general: carga de artículos, ver la lista de artículos y entrar al submenú de un artículo
 def menu_principal():
@@ -219,7 +252,7 @@ def menu_principal():
             1: ("Cargar Artículo", cargar_y_guardar),
             2: ("Ver Artículos", ver_articulos),
             0: ("Salir", salir)
-    })
+    }, salida=0)
     while True:
         menu.ejecutar_opcion()
 
