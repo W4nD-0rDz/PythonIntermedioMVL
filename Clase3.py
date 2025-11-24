@@ -66,7 +66,7 @@ class VehiculoAereo(Vehiculo):
     def revisar_motor(self):
         for motor in range(self.cant_motor):
             print("Revisando motor...")
-            print("Motor revisado.")
+            print(f"Motor {motor} revisado.")
 
     def mostrar(self):
         super().mostrar()
