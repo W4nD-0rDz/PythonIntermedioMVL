@@ -69,7 +69,7 @@ class Usuario(Persona):
 #1 Registrarse
 def registrar():
     print ("Bienvenido al sistema de Registro de ANSES")
-    nombre = input("Ingrese su nombre completo: ").strip().lower()
+    nombre = input("Ingrese su nombre completo: ").strip()
     while True:
         try:
             dni = input("Ingrese su DNI: ").strip()
@@ -117,7 +117,6 @@ def registrar_almacenar():
     usuario = registrar()
     #Si el archivo existe...
     if os.path.exists(csv_path):
-        with open(csv_path, newline="", encoding="utf-8") as f:
             id = generar_id()
             almacenar(id, usuario)
     else:
@@ -182,12 +181,13 @@ def validar_fecha(fecha_nacimiento):
     return True
 
 #2 Ver usuarios
-def ver_usuarios(csv_path):
+def ver_usuarios():
     columnas_seguras = ["nombre", "dni", "fecha_nacimiento", "edad", "alta"]
+
     with open(csv_path, "r", encoding="utf-8") as f:
         reader =csv.DictReader(f)
         filas_filtradas = []
-
+                
         for row in reader:
             seleccion = {col: row[col] for col in columnas_seguras}
             if seleccion["alta"].lower() == "true": #Solo muestra usuarios no dados de baja (== borrados)
@@ -196,6 +196,11 @@ def ver_usuarios(csv_path):
                             "Fecha de Nacimiento": convertir_formato_fecha(seleccion["fecha_nacimiento"]), 
                             "Edad": seleccion["edad"]}
                 filas_filtradas.append(filtrado)
+
+        if not filas_filtradas:
+            print("No hay usuarios registrados.")
+            return
+        
         print(tabulate(filas_filtradas, header="keys", tablefmt="fancy_grid"))
 
 def convertir_formato_fecha(fecha):
@@ -204,10 +209,84 @@ def convertir_formato_fecha(fecha):
 
 #3 Ver datos
 def ver_datos():
-    pass
+    intentos = 0
+    while intentos < 3:
+        try:
+            dni = input("Ingrese el DNI buscado: ").strip()
+            with open (csv_path, "r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                fila = next((r for r in reader if r["dni"] == dni), None)
+        except FileNotFoundError:
+            print("La base de datos no existe.")
+            return
+        
+        if not fila:
+            print("⛔ No se encontró el DNI ingresado. Intente nuevamente.\n")
+            intentos += 1
+            continue
+        else:
+            mostrar_datos(fila)
+            break
+    if intentos == 3:
+        print("⛔ Tres intentos fallidos. Volviendo al menú...\n")
+        return
+       
+def mostrar_datos(fila): #Con Tabulate
+    tabla = [
+        ["Nombre", fila["nombre"]],
+        ["DNI", fila["dni"]],
+        ["Fecha de nacimiento", fila["fecha_nacimiento"]],
+        ["Edad", fila["edad"]],
+        ["Contraseña", ocultar_clave(fila["clave"])]
+    ]
+    print("\n🔎 Datos del usuario:")
+    print(tabulate(tabla, headers=["Campo", "Valor"], tablefmt="fancy_grid"))
+    print()
+
+def ocultar_clave(clave: str) -> str:
+    if not clave:
+        return "******"
+    return "*" * len(clave)
+
 #4 Borrar usuario
 def borrar_usuario():
-    pass
+    intentos = 0
+    while intentos < 3:
+        try:
+            dni = input("Ingrese el Nombre del usuario buscado: ").strip()
+            with open (csv_path, "r", encoding="utf-8") as archivo:
+                reader = csv.DictReader(archivo)
+                filas = list(reader)
+                fila = next((f for f in filas if f["nombre"] == dni), None)
+        except FileNotFoundError:
+            print("La base de datos no existe.")
+            return
+        
+        if not fila:
+            print("⛔ No se encontró el Nombre ingresado. Intente nuevamente.\n")
+            intentos += 1
+            continue
+        elif fila["alta"].lower() =="false":
+            print("⛔ Usuario dado de baja")
+            return
+        else:
+            editar_datos(filas, fila)
+            return
+    print("⛔ Tres intentos fallidos. Volviendo al menú...\n")
+    
+def editar_datos(filas, fila):
+    for i, f, in enumerate(filas):
+        if f["nombre"] == fila["nombre"]:
+            filas[i]["alta"] = "False"
+            break
+
+    with open(csv_path, "w", encoding="utf-8", newline="") as archivo:
+        writer = csv.DictWriter(archivo, fieldnames=filas[0].keys())
+        writer.writeheader()
+        writer.writerows(filas)
+
+    print("✔ Usuario dado de baja con exito.")
+
 #5 Salir
 def salir():
     print("ANSES agradece su visita.")
@@ -217,11 +296,11 @@ def salir():
 def menu_principal():
     menu = Menu(titulo="ANSES",
     opciones={
-            1: ("Registrarse", registrar_almacenar()),
-            2: ("Ver Usuarios", ver_usuarios(csv_path)),
-            3: ("Ver Datos", ver_datos()),
-            4: ("Borrar Usuario", borrar_usuario()),
-            0: ("Salir", salir())
+            1: ("Registrarse", registrar_almacenar),
+            2: ("Ver Usuarios", ver_usuarios),
+            3: ("Ver Datos", ver_datos),
+            4: ("Borrar Usuario", borrar_usuario),
+            0: ("Salir", salir)
     }, salida=0)
     while True:
         menu.ejecutar_opcion()
