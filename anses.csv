@@ -1,0 +1,4 @@
+id,nombre,dni,fecha_nacimiento,edad,clave,alta
+0000-00000000,Wanda Oz,29103091,1981-12-31,43,31i$B!,True
+0000-00000001,Lucas Leon,50123456,2020-02-05,5,L0C#n3,False
+0000-00000002,Wanda Ordoñez,30291263,1981-12-31,43,AL0#4s,False

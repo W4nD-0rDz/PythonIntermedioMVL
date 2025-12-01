@@ -21,7 +21,14 @@ import os
 import csv
 from tabulate import tabulate
 from menu_utils import Menu
+
+#0 Crear csv
 csv_path = "anses.csv"
+if not os.path.exists(csv_path):
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["id", "nombre", "dni", "fecha_nacimiento", "edad", "clave", "alta"])
+
 
 #SUPERCLASE
 class Persona():
@@ -60,11 +67,13 @@ class Usuario(Persona):
         return clave
     
     def convertir_a_lista(self):
-        return [self._nombre, self._dni,  str(self._fecha_nacimiento), self.__edad, self.__clave]
+        return list([self._nombre, self._dni,  str(self._fecha_nacimiento), self.__edad, self.__clave])
     
     def mostrar_datos(self):
         print(f"Nombre: {self._nombre} ({self.__edad})")
         print(f"DNI: {self._dni}")
+        print(f"Fecha de nacimiento: {self._fecha_nacimiento}")
+        print(f"Clave: {self.__clave}")
 
 #1 Registrarse
 def registrar():
@@ -97,17 +106,20 @@ def registrar():
             clave = input("Ingrese una clave de 6 (seis) dígitos alfanuméricos.\n"
             "Tenga en cuenta: no repetir caracteres.\n"
             "Debe incluir al menos 1 Letra mayúscula, 1 número, 1 letra minúscula,\n"
-             "y al menos 1 caracter especial (!@#$%&?¡¿/*-_+).")
-            usuario = Usuario(nombre, dni, fecha_nacimiento, clave)
+             "y al menos 1 caracter especial (!@#$%&?¡¿/*-_+): ")
+            # Validación preliminar: probamos crear el usuario temporalmente
+            _ = Usuario(nombre, dni, fecha_nacimiento, clave)
+            print("✔ Clave almacenada correctamente.\n")
             break
         except Exception as e:
             print("Error: ",e)
             print("Intente nuevamente.")
 
+    usuario = Usuario(nombre, dni, fecha_nacimiento, clave)
     return usuario
 
 def almacenar(id, usuario):
-    registro = usuario.convertir_a_lista()
+    registro = usuario.convertir_a_lista()    
     with open(csv_path, "a", newline="", encoding="utf-8") as f:
         writer =csv.writer(f)
         writer.writerow([id] + registro + ["True"])
@@ -183,25 +195,42 @@ def validar_fecha(fecha_nacimiento):
 #2 Ver usuarios
 def ver_usuarios():
     columnas_seguras = ["nombre", "dni", "fecha_nacimiento", "edad", "alta"]
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            reader =csv.DictReader(f)
+            filas_filtradas = []
+                    
+            for row in reader:
+                try:
+                    #1 - claves faltantes
+                    seleccion = {col: row[col] for col in columnas_seguras}
+                    if seleccion["alta"] is None:
+                        raise AttributeError
+                    if seleccion["alta"].lower() == "true": #Solo muestra usuarios no dados de baja (== borrados)
+                        filtrado = {"DNI": seleccion["dni"], 
+                                    "Nombre": seleccion["nombre"],  
+                                    "Fecha de Nacimiento": convertir_formato_fecha(seleccion["fecha_nacimiento"]), 
+                                    "Edad": seleccion["edad"]}
+                        filas_filtradas.append(filtrado)
+                except KeyError:
+                    print("Error: faltan columnas obligatorias en el archivo CSV.")
+                    return
+                except ValueError:
+                    print("Error: formato de fecha inválido en uno de los usuarios.")
+                    return
+                except AttributeError:
+                    print("Error: datos incompletos o corruptos en el campo 'alta'.")
+                    return
 
-    with open(csv_path, "r", encoding="utf-8") as f:
-        reader =csv.DictReader(f)
-        filas_filtradas = []
-                
-        for row in reader:
-            seleccion = {col: row[col] for col in columnas_seguras}
-            if seleccion["alta"].lower() == "true": #Solo muestra usuarios no dados de baja (== borrados)
-                filtrado = {"DNI": seleccion["dni"], 
-                            "Nombre": seleccion["nombre"],  
-                            "Fecha de Nacimiento": convertir_formato_fecha(seleccion["fecha_nacimiento"]), 
-                            "Edad": seleccion["edad"]}
-                filas_filtradas.append(filtrado)
+    except FileNotFoundError:
+        print("No existe la base de datos. Registre un usuario primero.")
+        return
 
-        if not filas_filtradas:
-            print("No hay usuarios registrados.")
-            return
+    if not filas_filtradas:
+        print("No hay usuarios activos registrados.")
+        return
         
-        print(tabulate(filas_filtradas, header="keys", tablefmt="fancy_grid"))
+    print(tabulate(filas_filtradas, headers="keys", tablefmt="fancy_grid"))
 
 def convertir_formato_fecha(fecha):
     fecha_raw = datetime.strptime(fecha, "%Y-%m-%d")
@@ -292,7 +321,7 @@ def salir():
     print("ANSES agradece su visita.")
     exit()
 
-#5- Menu general: carga de artículos, ver la lista de artículos y entrar al submenú de un artículo
+#6 Menu general: carga de artículos, ver la lista de artículos y entrar al submenú de un artículo
 def menu_principal():
     menu = Menu(titulo="ANSES",
     opciones={
